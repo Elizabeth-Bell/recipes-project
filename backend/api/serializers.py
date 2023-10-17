@@ -8,11 +8,10 @@ from django.core.files.base import ContentFile
 
 from recipes.models import (Ingredient, Tag, Recipe,
                             FavoriteRecipe, RecipeIngredients,
-                            ShoppingCart, RecipeTags)
+                            RecipeTags,
+                            ShoppingCart)
 from users.models import CustomUser, Subscribe
 from users.serializers import UserSerializer
-
-#def create_attributes_array(attribute, model):
 
 
 class Base64ImageField(serializers.ImageField):
@@ -147,8 +146,21 @@ class RecipeListSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(many=True, source='recipeingredients_set')
     tags = TagSerializer(many=True)
     author = UserSerializer()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
-                  'name', 'image', 'text', 'cooking_time')
+                  'name', 'image', 'text', 'cooking_time', 'is_favorited',
+                  'is_in_shopping_cart')
+
+    def get_is_favorited(self, obj):
+        recipe = obj.id
+        user = self.context['request'].user.id
+        return FavoriteRecipe.objects.filter(recipe=recipe, user=user).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        recipe = obj.id
+        user = self.context['request'].user.id
+        return ShoppingCart.objects.filter(recipe=recipe, user=user).exists()

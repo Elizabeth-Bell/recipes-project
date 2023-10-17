@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import CheckConstraint, Q, F
 
 from .validators import validate_username
 from .managers import CustomUserManager
@@ -14,8 +15,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                                    verbose_name='Администратор')
     is_superuser = models.BooleanField(default=False,
                                        verbose_name='Суперпользователь')
-    is_subscribed = models.BooleanField(default=False,
-                                        verbose_name='Вы подписаны на пользователя')
     username = models.CharField(
         verbose_name='Имя пользователя',
         max_length=150,
@@ -71,3 +70,7 @@ class Subscribe(models.Model):
                              on_delete=models.CASCADE,
                              verbose_name='Подписчик',
                              related_name='subscriber')
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'

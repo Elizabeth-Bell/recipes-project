@@ -18,9 +18,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(r'auth/', include('djoser.urls')),
-    path(r'auth/', include('djoser.urls.authtoken')),
+    path(r'api/auth/', include('djoser.urls.authtoken')),
     path(r'api/', include('users.urls')),
+    path(r'api/', include('djoser.urls')),
     path(r'api/', include('api.urls')),
 ]
 #Нужные эндпойнты из djoser

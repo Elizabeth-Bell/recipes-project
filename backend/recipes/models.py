@@ -68,11 +68,14 @@ class Recipe(models.Model):
     cooking_time = models.IntegerField(verbose_name='Время приготовления'
                                                     'в минутах')
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
-                               verbose_name='Автор')
+                               verbose_name='Автор', related_name='recipes')
+    pub_date = models.DateTimeField(verbose_name='Дата публикации',
+                                    auto_now_add=True)
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name
@@ -104,15 +107,22 @@ class RecipeTags(models.Model):
 class FavoriteRecipe(models.Model):
     """Модель для избранных рецептов"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
-                             verbose_name='Пользователь')
+                             verbose_name='Пользователь', related_name='fav_recipes')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-                               verbose_name='Рецепт')
+                               verbose_name='Рецепт', related_name='fav_users')
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
 
-class ShoppingCart(FavoriteRecipe):
+class ShoppingCart(models.Model):
     """Модель для корзины покупок."""
-    pass
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
+                             verbose_name='Пользователь', related_name='shop_recipes')
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+                               verbose_name='Рецепт', related_name='shop_users')
+
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
