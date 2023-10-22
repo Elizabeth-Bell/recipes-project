@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import CheckConstraint, Q, F
 
 from .validators import validate_username
 from .managers import CustomUserManager
@@ -43,8 +42,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username',
-                       'password', 'last_name', 'first_name']
+    REQUIRED_FIELDS = ['username', 'last_name', 'first_name']
 
     class Meta:
         verbose_name = 'Пользователь'

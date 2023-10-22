@@ -5,30 +5,38 @@ from rest_framework import (filters, pagination, permissions, status,
 from rest_framework.response import Response
 
 from users.models import CustomUser, Subscribe
-from users.serializers import UserSerializer, SignUpSerializer, SubscribeUserRecipe
+from users.serializers import UserSerializer, SubscribeUserRecipe
 from api.pagination import CustomPagination
-from rest_framework.permissions import IsAuthenticated
-from api.permissions import IsAuthorOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from api.permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly, IsMe
+from djoser.serializers import UserCreateSerializer, SetPasswordSerializer, TokenSerializer, TokenCreateSerializer
+from djoser.views import UserViewSet
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class CustomUserViewSet(UserViewSet):
     """ВЬюсет для пользователей."""
     queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
     http_method_names = ['get', 'post', 'delete']
     pagination_class = CustomPagination
 
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return SignUpSerializer
-        return UserSerializer
+    @action(detail=False,
+            permission_classes=[IsMe,],
+            methods=['get', 'delete'])
+    def me(self, request):
+        me = get_object_or_404(CustomUser, id=request.user.id)
+        if request.method == 'GET':
+            serializer = UserSerializer(me, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            me.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True,
             permission_classes=[permissions.IsAuthenticated],
             methods=['post', 'delete'], url_path='subscribe')
-    def add_delete_subscribe(self, request, pk=None):
+    def add_delete_subscribe(self, request, id=None):
         """Функция подписки/отписки от автора."""
-        author = get_object_or_404(CustomUser, id=pk)
+        author = get_object_or_404(CustomUser, id=id)
         if request.method == 'POST':
             if not Subscribe.objects.filter(user=request.user,
                                             author=author).exists() and (

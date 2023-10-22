@@ -25,14 +25,13 @@ class SignUpSerializer(serializers.ModelSerializer):
     """Сериалайзер для регистрации пользователей."""
     class Meta:
         model = CustomUser
-        fields = ('email', 'username', 'password',
+        fields = ('id', 'email', 'username',
                   'first_name', 'last_name')
 
     def validate_username(self, value):
         if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError('Имя введено в некорректном формате')
         return value
-
 
 class AddRecipeFavoriteSerializer(serializers.ModelSerializer):
 
@@ -59,10 +58,10 @@ class SubscribeUserRecipe(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         request = self.context['request']
-        recipe_limit = request.GET.get('recipe_limit')
+        recipe_limit = request.GET.get('recipes_limit')
         recipes = Recipe.objects.filter(author=obj.id)
         if recipe_limit:
-            recipes = recipes[:recipe_limit]
+            recipes = recipes[:int(recipe_limit)]
         serializer = AddRecipeFavoriteSerializer(recipes, many=True, read_only=True)
         return serializer.data
 

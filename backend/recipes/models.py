@@ -7,7 +7,6 @@ from users.models import CustomUser
 class Ingredient(models.Model):
     """Модель ингредиента."""
     name = models.CharField(verbose_name='Название ингредиента',
-                            unique=True,
                             max_length=200)
     measurement_unit = models.CharField(verbose_name='Единицы измерения',
                                         max_length=200
