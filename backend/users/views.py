@@ -17,7 +17,7 @@ class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPagination
 
     @action(detail=False,
-            permission_classes=[IsMe,],
+            permission_classes=[IsMe, ],
             methods=['get', 'delete'])
     def me(self, request):
         """Функция получения своих данных по эндпойнту me."""
