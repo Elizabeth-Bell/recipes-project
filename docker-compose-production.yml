@@ -4,6 +4,8 @@ volumes:
   pg_data:
   static:
   media:
+  redoc:
+  frontend:
 
 services:
   db:
@@ -17,19 +19,21 @@ services:
     depends_on:
       - db
     volumes:
-      - static:/backend_static
+      - static:/backend_static/
       - media:/app/media/
+      - redoc:/app/api/docs/
   frontend:
     env_file: .env
     image: elizabethbel/foodgram_frontend
-    command: cp -r /app/build/. /static/
     volumes:
-      - static:/static
+      - frontend:/app/build/
   gateway:
     image: elizabethbel/foodgram_gateway
     env_file: .env
     ports:
       - 8000:80
     volumes:
-      - static:/static
-      - media:/app/media/
+      - redoc:/usr/share/nginx/html/api/docs/
+      - static:/var/html/static/
+      - media:/media/
+      - frontend:/usr/share/nginx/html/

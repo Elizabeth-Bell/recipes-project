@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 
-from .validators import validate_username
 from .managers import CustomUserManager
 
 
@@ -19,9 +18,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         max_length=150,
         unique=True,
         validators=[RegexValidator(regex=r'^[\w.@+-]+\Z',
-                                  message='Имя пользователя'
-                                          'содержит недопустимые'
-                                          'символы.'), ]
+                                   message='Имя пользователя'
+                                   'содержит недопустимые'
+                                           'символы.'), ]
     )
     email = models.EmailField(max_length=254, unique=True,
                               verbose_name='email')

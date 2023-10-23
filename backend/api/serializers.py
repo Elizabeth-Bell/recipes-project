@@ -1,16 +1,13 @@
 import base64
-from django.conf import settings
-from django.shortcuts import get_object_or_404
+
 import webcolors
-from rest_framework import serializers
-
+from django.conf import settings
 from django.core.files.base import ContentFile
-
+from rest_framework import serializers
 from recipes.models import (Ingredient, Tag, Recipe,
                             FavoriteRecipe, RecipeIngredients,
                             RecipeTags,
                             ShoppingCart)
-from users.models import CustomUser, Subscribe
 from users.serializers import UserSerializer
 
 
@@ -22,7 +19,7 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' +ext)
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
         return super().to_internal_value(data)
 
@@ -40,12 +37,6 @@ class Hex2NameToColor(serializers.Field):
             raise serializers.ValidationError('Этого цвета нет в '
                                               'библиотеке цветов')
         return data
-
-class TagToCreateRecipe(serializers.Field):
-    """Поле для записи тэгов по id и получения их целиком."""
-    def to_reprisentation(self, value):
-        tag = Tag.objects.get(id=value)
-        return tag
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -80,8 +71,11 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 class AddIngredientRecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для добавления ингредиента в рецепт."""
     id = serializers.IntegerField(source='ingredient.id')
-    amount = serializers.IntegerField(min_value=1, max_value=settings.MAX_VALIDATION)
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+    amount = serializers.IntegerField(min_value=1,
+                                      max_value=settings.MAX_VALIDATION)
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
     name = serializers.ReadOnlyField(source='ingredient.name')
 
     class Meta:
@@ -102,12 +96,15 @@ class AddTagRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для добавления рецепта."""
-    ingredients = AddIngredientRecipeSerializer(many=True, source='recipeingredients_set')
+    ingredients = AddIngredientRecipeSerializer(many=True,
+                                                source='recipeingredients_set')
     image = Base64ImageField(required=True)
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    tags = serializers.PrimaryKeyRelatedField(many=True,
+                                              queryset=Tag.objects.all())
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
-    cooking_time = serializers.IntegerField(min_value=1, max_value=settings.MAX_COOKING)
+    cooking_time = serializers.IntegerField(min_value=1,
+                                            max_value=settings.MAX_COOKING)
 
     class Meta:
         model = Recipe
@@ -117,7 +114,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
     def create(self, validated_data):
-        print(validated_data)
+        """Функция создания рецепта."""
         ingredients = validated_data.pop('recipeingredients_set')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
@@ -127,12 +124,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             pk = ingredient['ingredient']['id']
             amount = ingredient['amount']
             current_ingredient = Ingredient.objects.get(id=pk)
-            RecipeIngredients.objects.create(ingredient_id=current_ingredient.id,
-                                             recipe_id=recipe.id, amount=amount)
+            RecipeIngredients.objects.create(
+                ingredient_id=current_ingredient.id,
+                recipe_id=recipe.id, amount=amount)
         return recipe
 
     def update(self, instance, validated_data):
-        print(validated_data)
+        """Функция обновления рецепта."""
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get('cooking_time',
@@ -152,22 +150,27 @@ class RecipeSerializer(serializers.ModelSerializer):
                 pk = ingredient['ingredient']['id']
                 amount = ingredient['amount']
                 current_ingredient = Ingredient.objects.get(id=pk)
-                RecipeIngredients.objects.create(ingredient=current_ingredient,
-                                                 amount=amount, recipe=instance)
+                RecipeIngredients.objects.create(
+                    ingredient=current_ingredient,
+                    amount=amount, recipe=instance
+                )
         instance.save()
         return instance
 
     def get_is_favorited(self, obj):
+        """Получение значения поля 'В избранном' в рецепте."""
         recipe = obj.id
         user = self.context['request'].user.id
         return FavoriteRecipe.objects.filter(recipe=recipe, user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        """Получение значения поля 'В списке покупок' в рецепте."""
         recipe = obj.id
         user = self.context['request'].user.id
         return ShoppingCart.objects.filter(recipe=recipe, user=user).exists()
 
     def validate(self, value):
+        """Функция валидации полей рецепта."""
         if 'tags' not in value:
             raise serializers.ValidationError('Вы не указали теги!')
         tags = value['tags']
@@ -176,13 +179,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         elif len(tags) == settings.EMPTY:
             raise serializers.ValidationError('Вы не добавили ни один тег!')
         if 'recipeingredients_set' not in value:
-            raise serializers.ValidationError('Укажите хотя бы один ингредиент')
+            raise serializers.ValidationError(
+                'Укажите хотя бы один ингредиент'
+            )
         ingredient_list = value['recipeingredients_set']
-        ingredients = [ingredient['ingredient']['id'] for ingredient in ingredient_list]
+        ingredients = [ingredient['ingredient']['id']
+                       for ingredient in ingredient_list]
         if len(ingredients) != len(set(ingredients)):
             raise serializers.ValidationError('Не повторяйте ингредиенты!')
         elif not Ingredient.objects.filter(id__in=ingredients).exists():
-            raise serializers.ValidationError('Такого ингредиента не существует!')
+            raise serializers.ValidationError(
+                'Такого ингредиента не существует!'
+            )
         return value
 
     def to_representation(self, instance):
@@ -191,7 +199,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipeListSerializer(serializers.ModelSerializer):
     """Сериалайзер для получения рецепта/списка рецептов."""
-    ingredients = RecipeIngredientSerializer(many=True, source='recipeingredients_set')
+    ingredients = RecipeIngredientSerializer(many=True,
+                                             source='recipeingredients_set')
     tags = TagSerializer(many=True)
     author = UserSerializer()
     is_favorited = serializers.SerializerMethodField()
@@ -205,15 +214,18 @@ class RecipeListSerializer(serializers.ModelSerializer):
                   'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
+        """Получение значения поля 'В избранном' в рецепте."""
         recipe = obj.id
         user = self.context['request'].user.id
         return FavoriteRecipe.objects.filter(recipe=recipe, user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        """Получение значения поля 'В избранном' в рецепте."""
         recipe = obj.id
         user = self.context['request'].user.id
         return ShoppingCart.objects.filter(recipe=recipe, user=user).exists()
 
     def get_image(self, obj):
+        """Получение значения поля 'Картинка' в рецепте."""
         if obj.image:
             return obj.image.url

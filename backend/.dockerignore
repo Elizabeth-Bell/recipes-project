@@ -1,6 +1,6 @@
 venv
 .git
-db.sqlite3.bak
+db.sqlite3
 .env
 media
-docs
+db.sqlite3

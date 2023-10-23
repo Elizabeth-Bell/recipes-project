@@ -1,9 +1,8 @@
 from rest_framework import permissions
 
-from users.models import CustomUser
-
 
 class IsMe(permissions.BasePermission):
+    """Пермишен на доступ к эндпойнту users/me"""
     def has_permission(self, request, view):
         return request.user.is_authenticated
 
@@ -12,7 +11,7 @@ class IsMe(permissions.BasePermission):
 
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
-    """Доступ на изменение/удаление объекта только для автора."""
+    """Доступ на изменение/удаление объекта только для автора или админа."""
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
                 or request.user.is_authenticated)

@@ -1,7 +1,6 @@
-from django.core.management.base import BaseCommand
-
 import csv
 
+from django.core.management.base import BaseCommand
 from recipes.models import Ingredient
 
 PATH = {Ingredient: 'data/ingredients.csv'}
@@ -16,6 +15,7 @@ def ingredients_import():
                 print(name, unit)
                 model.objects.create(name=name,
                                      measurement_unit=unit)
+
 
 class Command(BaseCommand):
     """Создание команды для выполнения импорта csv-файла."""

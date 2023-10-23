@@ -1,8 +1,6 @@
-from pathlib import Path
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
-from djoser.permissions import CurrentUserOrAdmin
-
+# flake8: noqa
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -68,12 +66,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram_project.wsgi.application'
 
-#DATABASES = {
-    #'default': {
-        #'ENGINE': 'django.db.backends.sqlite3',
-        #'NAME': BASE_DIR / 'db.sqlite3.bak',
-    #}
-#}
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
