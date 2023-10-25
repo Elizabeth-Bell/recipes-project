@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'djoser',
+    'colorfield',
 
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
@@ -65,7 +66,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'foodgram_project.wsgi.application'
-
 
 DATABASES = {
     'default': {
