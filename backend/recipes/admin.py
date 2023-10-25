@@ -38,19 +38,15 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Админ-панель рецептов."""
-    list_display = ('name', 'author', 'recipe_favorite')
+    list_display = ('name', 'author')
     search_field = ('name', 'tags', 'author')
     list_filter = ('name', 'tags', 'author')
+    readonly_fields = ('in_favorite', )
     empty_value_display = '-пусто-'
-    inlines = [
+    inlines = (
         RecipeInline,
         RecipeTagsInline,
-    ]
-
-    def recipe_favorite(self, obj):
-        return len(FavoriteRecipe.objects.filter(recipe=obj.id))
-
-    recipe_favorite.short_description = 'В избранном'
+    )
 
 
 @admin.register(FavoriteRecipe)

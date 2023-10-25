@@ -1,5 +1,9 @@
+from django.contrib import admin
 from django.core.validators import RegexValidator
 from django.db import models
+
+from colorfield.fields import ColorField
+
 from users.models import CustomUser
 
 
@@ -21,7 +25,7 @@ class Ingredient(models.Model):
         )
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -29,9 +33,9 @@ class Tag(models.Model):
     """Модель тэга"""
     name = models.CharField(verbose_name='Название тега',
                             max_length=200)
-    color = models.CharField(verbose_name='Цвет',
-                             max_length=7,
-                             blank=True)
+    color = ColorField(verbose_name='Цвет',
+                       max_length=7,
+                       blank=True)
     slug = models.SlugField(verbose_name='Слаг',
                             validators=[RegexValidator(
                                 regex=r'^[-a-zA-Z0-9_]+$',
@@ -46,7 +50,7 @@ class Tag(models.Model):
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -77,8 +81,12 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
+
+    @admin.display(description='В избранном')
+    def in_favorite(self) -> int:
+        return len(FavoriteRecipe.objects.filter(recipe=self.id))
 
 
 class RecipeIngredients(models.Model):
@@ -91,7 +99,7 @@ class RecipeIngredients(models.Model):
                                verbose_name='Рецепт')
     amount = models.IntegerField(verbose_name='Количество')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.ingredient} {self.amount}'
 
 
@@ -102,7 +110,7 @@ class RecipeTags(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                verbose_name='Рецепт')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.recipe}{self.tag}'
 
 
@@ -118,8 +126,8 @@ class FavoriteRecipe(models.Model):
                                related_name='fav_users')
 
     class Meta:
-        verbose_name = 'Рецепт'
-        verbose_name_plural = 'Рецепты'
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
 
 
 class ShoppingCart(models.Model):
@@ -130,9 +138,9 @@ class ShoppingCart(models.Model):
                              related_name='shop_recipes')
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
-                               verbose_name='Рецепт',
+                               verbose_name='Рецепт в корзине',
                                related_name='shop_users')
 
     class Meta:
-        verbose_name = 'Рецепт'
-        verbose_name_plural = 'Рецепты'
+        verbose_name = 'Рецепт в корзине'
+        verbose_name_plural = 'Рецепты в корзине'

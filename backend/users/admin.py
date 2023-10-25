@@ -5,7 +5,7 @@ from .models import CustomUser, Subscribe
 
 
 class UserAdminModel(UserAdmin):
-    readonly_fields = ['date_joined', 'last_login']
+    readonly_fields = ('date_joined', 'last_login')
 
 
 @admin.register(CustomUser)

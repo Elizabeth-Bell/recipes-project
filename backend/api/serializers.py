@@ -4,6 +4,9 @@ import webcolors
 from django.conf import settings
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+
+from colorfield.serializers import ColorField
+
 from recipes.models import (Ingredient, Tag, Recipe,
                             FavoriteRecipe, RecipeIngredients,
                             RecipeTags,
@@ -24,24 +27,9 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class Hex2NameToColor(serializers.Field):
-    """Поле для перевода HEX-кода цвета в название."""
-
-    def to_representation(self, value):
-        return value
-
-    def to_internal_value(self, data):
-        try:
-            data = webcolors.hex_to_name(data)
-        except ValueError:
-            raise serializers.ValidationError('Этого цвета нет в '
-                                              'библиотеке цветов')
-        return data
-
-
 class TagSerializer(serializers.ModelSerializer):
     """Сериалайзер для просмотра тэгов."""
-    color = Hex2NameToColor(required=False)
+    color = ColorField(required=False)
 
     class Meta:
         model = Tag
