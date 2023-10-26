@@ -37,10 +37,10 @@ class Tag(models.Model):
                        max_length=7,
                        blank=True)
     slug = models.SlugField(verbose_name='Слаг',
-                            validators=[RegexValidator(
+                            validators=(RegexValidator(
                                 regex=r'^[-a-zA-Z0-9_]+$',
                                 message='Слаг содержит '
-                                        'недопустимые символы'), ],
+                                        'недопустимые символы'), ),
                             max_length=200,
                             unique=True,
                             blank=True)

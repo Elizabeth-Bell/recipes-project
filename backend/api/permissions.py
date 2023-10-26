@@ -18,9 +18,9 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj) -> bool:
         return (request.method in permissions.SAFE_METHODS
-                or any([obj.author == request.user,
+                or any((obj.author == request.user,
                         request.user.is_staff,
-                        request.user.is_superuser])
+                        request.user.is_superuser))
                 )
 
 
@@ -28,6 +28,6 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """Доступ на удаление, удаление для админа."""
     def has_object_permission(self, request, view, obj) -> bool:
         return (request.method in permissions.SAFE_METHODS
-                or any([request.user.is_staff,
-                        request.user.is_superuser])
+                or any((request.user.is_staff,
+                        request.user.is_superuser))
                 )
