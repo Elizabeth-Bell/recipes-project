@@ -3,7 +3,6 @@ import base64
 from django.conf import settings
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-
 from colorfield.serializers import ColorField
 
 from recipes.models import (Ingredient, Tag, Recipe,
@@ -45,40 +44,38 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериалайзер для получения ингредиента."""
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredients
         fields = ('id', 'name', 'measurement_unit', 'amount')
+        read_only_fields = ('id', 'name', 'measurement_unit')
 
 
 class AddIngredientRecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для добавления ингредиента в рецепт."""
     id = serializers.IntegerField(source='ingredient.id')
-    amount = serializers.IntegerField(min_value=1,
+    amount = serializers.IntegerField(min_value=settings.ONE,
                                       max_value=settings.MAX_VALIDATION)
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit'
-    )
-    name = serializers.ReadOnlyField(source='ingredient.name')
 
     class Meta:
         model = RecipeIngredients
-        fields = ('id', 'amount', 'measurement_unit', 'name')
+        fields = ('id', 'amount')
 
 
 class AddTagRecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для добавления тэгов в рецепт."""
     id = serializers.IntegerField(source='tag.id')
-    color = serializers.ReadOnlyField(source='tag.color')
-    name = serializers.ReadOnlyField(source='tag.slug')
+    color = serializers.CharField(source='tag.color')
+    name = serializers.CharField(source='tag.slug')
 
     class Meta:
         model = RecipeTags
         fields = ('id', 'color', 'slug')
+        read_only_fields = ('id', 'color', 'name')
 
 
 class RecipeSerializer(serializers.ModelSerializer):

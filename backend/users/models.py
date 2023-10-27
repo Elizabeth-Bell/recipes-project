@@ -17,10 +17,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name='Имя пользователя',
         max_length=150,
         unique=True,
-        validators=[RegexValidator(regex=r'^[\w.@+-]+\Z',
+        validators=(RegexValidator(regex=r'^[\w.@+-]+\Z',
                                    message='Имя пользователя'
                                    'содержит недопустимые'
-                                           'символы.'), ]
+                                           'символы.'), )
     )
     email = models.EmailField(max_length=254, unique=True,
                               verbose_name='email')
@@ -41,7 +41,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'last_name', 'first_name']
+    REQUIRED_FIELDS = ('username', 'last_name', 'first_name')
 
     class Meta:
         verbose_name = 'Пользователь'

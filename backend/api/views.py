@@ -5,19 +5,19 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAuthorOrReadOnly
 from recipes.models import (Tag, Recipe,
                             Ingredient, FavoriteRecipe,
-                            ShoppingCart, RecipeIngredients)
+                            ShoppingCart)
 from .serializers import (TagSerializer, RecipeSerializer,
                           IngredientSerializer,
                           RecipeListSerializer)
 from users.serializers import AddRecipeFavoriteSerializer
 from .utils import (add_to_favorite_or_shopping_cart,
-                    delete_from_favorite_or_shopping_cart)
+                    delete_from_favorite_or_shopping_cart,
+                    get_unique_ingredients)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -44,8 +44,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=False, methods=['post', 'delete'],
-            permission_classes=[IsAuthenticated],
+    @action(detail=False, methods=('post', 'delete'),
+            permission_classes=(IsAuthenticated, ),
             url_path='(?P<recipe_id>[^/.]+)/favorite')
     def add_delete_favorite_recipe(self, request, recipe_id):
         """Функция добавления/удаления рецепта из избранного."""
@@ -65,8 +65,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
-            methods=['post', 'delete'],
-            permission_classes=[IsAuthenticated],
+            methods=('post', 'delete'),
+            permission_classes=(IsAuthenticated, ),
             url_path='(?P<recipe_id>[^/.]+)/shopping_cart')
     def add_delete_shopping_cart(self, request, recipe_id):
         """Функция добавления/удаления рецепта из списка покупок."""
@@ -86,29 +86,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
-            methods=['get'],
-            permission_classes=[IsAuthenticated],
+            methods=('get', ),
+            permission_classes=(IsAuthenticated, ),
             url_path='download_shopping_cart')
     def get_shopping_list(self, request):
         """Функция скачивания списка покупок."""
-        shopping_cart = ShoppingCart.objects.filter(
-            user=request.user).values_list('recipe_id', flat=True)
-        ingredients = RecipeIngredients.objects.filter(
-            recipe_id__in=shopping_cart).values_list(
-            'ingredient__name',
-            'amount',
-            'ingredient__measurement_unit'
-        )
-        counted_ingredients = {}
-        for name, amount, unit in ingredients:
-            if name not in counted_ingredients:
-                counted_ingredients[name] = amount, unit
-            else:
-                counted_ingredients[name] = (counted_ingredients[name][0]
-                                             + amount, unit)
-        shopping_list = ''
-        for name, (amount, unit) in counted_ingredients.items():
-            shopping_list += f'{name}: {amount} {unit}\n'
+        shopping_list = get_unique_ingredients(request)
         file_name = f'{request.user.username}_shopping_list.txt'
         response = HttpResponse(
             shopping_list,

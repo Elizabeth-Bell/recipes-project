@@ -13,12 +13,12 @@ from users.serializers import (UserSerializer,
 class CustomUserViewSet(UserViewSet):
     """ВЬюсет для пользователей."""
     queryset = CustomUser.objects.all()
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ('get', 'post', 'delete')
     pagination_class = CustomPagination
 
     @action(detail=False,
-            permission_classes=[IsMe, ],
-            methods=['get', 'delete'])
+            permission_classes=(IsMe, ),
+            methods=('get', 'delete'))
     def me(self, request):
         """Функция получения своих данных по эндпойнту me."""
         me = get_object_or_404(CustomUser, id=request.user.id)
@@ -30,8 +30,8 @@ class CustomUserViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True,
-            permission_classes=[permissions.IsAuthenticated],
-            methods=['post', 'delete'], url_path='subscribe')
+            permission_classes=(permissions.IsAuthenticated, ),
+            methods=('post', 'delete'), url_path='subscribe')
     def add_delete_subscribe(self, request, id=None):
         """Функция подписки/отписки от автора."""
         author = get_object_or_404(CustomUser, id=id)
@@ -55,8 +55,8 @@ class CustomUserViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'],
-            permission_classes=[permissions.IsAuthenticated],
+    @action(detail=False, methods=('get', ),
+            permission_classes=(permissions.IsAuthenticated, ),
             url_path='subscriptions')
     def get_subscriptions(self, request):
         """Функция списка подписок."""
